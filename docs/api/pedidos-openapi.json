@@ -1,0 +1,56 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Pedidos - Mercado Quevedo",
+    "version": "1.0.0",
+    "description": "Servicio de procesamiento de compras con validación síncrona de stock contra el catálogo."
+  },
+  "paths": {
+    "/api/v1/pedidos": {
+      "get": {
+        "summary": "Listar historial de pedidos",
+        "description": "Retorna todos los pedidos registrados con sus respectivos estados.",
+        "responses": {
+          "200": {
+            "description": "Historial de órdenes entregado con éxito."
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear una nueva orden de pedido",
+        "description": "Genera una compra de ítems verificando la disponibilidad real en el catálogo.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "productoId": { "type": "integer", "example": 1 },
+                        "cantidad": { "type": "integer", "example": 5 }
+                      },
+                      "required": ["productoId", "cantidad"]
+                    }
+                  }
+                },
+                "required": ["items"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pedido completado y procesado exitosamente." },
+          "400": { "description": "JSON malformado." },
+          "404": { "description": "Producto no encontrado en el catálogo." },
+          "422": { "description": "Stock insuficiente para procesar la solicitud." },
+          "503": { "description": "Service Unavailable: El servicio de catálogo no responde o excedió el timeout." }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+package uteq.edu.ec.Mercado.svc_catalogo;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class SvcCatalogoApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}

@@ -1,0 +1,11 @@
+**/target/
+**.pom.properties
+**.classpath
+**.project
+**.settings/
+**.factorypath
+.idea/
+*.iml
+.DS_Store
+datos_catalogo/
+datos_pedidos/

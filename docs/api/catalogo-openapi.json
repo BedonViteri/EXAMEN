@@ -1,0 +1,48 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "API de Catálogo - Mercado Quevedo",
+    "version": "1.0.0",
+    "description": "Servicio encargado del control de inventario, altas, bajas y consultas de productos."
+  },
+  "paths": {
+    "/api/v1/productos": {
+      "get": {
+        "summary": "Listar todos los productos",
+        "description": "Retorna el inventario completo registrado en la base de datos del catálogo.",
+        "responses": {
+          "200": {
+            "description": "Lista de productos obtenida con éxito."
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear un nuevo producto",
+        "description": "Registra un artículo validando que el SKU sea único.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sku": { "type": "string", "example": "PROD-001" },
+                  "nombre": { "type": "string", "example": "Plátano Verde Quevedo" },
+                  "precio": { "type": "number", "example": 0.25 },
+                  "stock": { "type": "integer", "example": 50 }
+                },
+                "required": ["sku", "nombre", "precio", "stock"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Producto creado exitosamente (Retorna cabecera Location)." },
+          "400": { "description": "JSON malformado o error de sintaxis." },
+          "409": { "description": "Conflict: El SKU ya se encuentra registrado." },
+          "422": { "description": "Unprocessable Entity: Reglas de negocio inválidas (ej. stock negativo)." }
+        }
+      }
+    }
+  }
+}

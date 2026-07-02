@@ -1,0 +1,95 @@
+version: '3.8'
+
+networks:
+  mercado_net:
+    driver: bridge
+
+volumes:
+  datos_catalogo:
+  datos_pedidos:
+
+services:
+  db-catalogo:
+    image: postgres:16-alpine
+    container_name: db-catalogo
+    environment:
+      POSTGRES_DB: mercado_catalogo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - datos_catalogo:/var/lib/postgresql/data
+    networks:
+      - mercado_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mercado_catalogo_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-pedidos:
+    image: postgres:16-alpine
+    container_name: db-pedidos
+    environment:
+      POSTGRES_DB: mercado_pedidos_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - datos_pedidos:/var/lib/postgresql/data
+    networks:
+      - mercado_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mercado_pedidos_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  svc-catalogo:
+    build:
+      context: ./svc-catalogo
+      dockerfile: Dockerfile
+    container_name: svc-catalogo
+    restart: always
+    networks:
+      - mercado_net
+    depends_on:
+      db-catalogo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  svc-pedidos:
+    build:
+      context: ./svc-pedidos
+      dockerfile: Dockerfile
+    container_name: svc-pedidos
+    restart: always
+    networks:
+      - mercado_net
+    depends_on:
+      db-pedidos:
+        condition: service_healthy
+      svc-catalogo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: reverse-proxy
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - mercado_net
+    depends_on:
+      svc-catalogo:
+        condition: service_healthy
+      svc-pedidos:
+        condition: service_healthy
